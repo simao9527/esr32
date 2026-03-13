@@ -41,6 +41,28 @@ static volatile bool is_running = false;
 #define EVENT_QUEUE_SIZE 10
 
 /**
+ * @brief 发送定时器事件到队列
+ * @details 从定时器回调中调用，将事件发送到队列供任务处理
+ *
+ * @param event 事件类型
+ */
+static void send_timer_event(TimerEventType event)
+{
+    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+
+    // 尝试发送事件到队列
+    if (xQueueSendFromISR(event_queue, &event, &xHigherPriorityTaskWoken) != pdTRUE) {
+        // 队列满，丢弃事件
+        return;
+    }
+
+    // 如果有更高优先级任务被唤醒，进行上下文切换
+    if (xHigherPriorityTaskWoken == pdTRUE) {
+        portYIELD_FROM_ISR();
+    }
+}
+
+/**
  * @brief 定时器中断回调函数
  * @details 定时器到期时调用的函数，只做最简单的操作，通过队列发送事件
  */
@@ -173,28 +195,6 @@ esp_err_t Timer_Start(void)
     is_running = true;
     ESP_LOGI(TAG, "定时器已启动");
     return ESP_OK;
-}
-
-/**
- * @brief 发送定时器事件到队列
- * @details 从定时器回调中调用，将事件发送到队列供任务处理
- *
- * @param event 事件类型
- */
-static void send_timer_event(TimerEventType event)
-{
-    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-
-    // 尝试发送事件到队列
-    if (xQueueSendFromISR(event_queue, &event, &xHigherPriorityTaskWoken) != pdTRUE) {
-        // 队列满，丢弃事件
-        return;
-    }
-
-    // 如果有更高优先级任务被唤醒，进行上下文切换
-    if (xHigherPriorityTaskWoken == pdTRUE) {
-        portYIELD_FROM_ISR();
-    }
 }
 
 /**
