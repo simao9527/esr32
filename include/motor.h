@@ -41,6 +41,13 @@ typedef struct {
     int8_t right_speed;     // 右电机速度(-100到100，负值表示后退)
 } MotorSpeed;
 
+// 电机配置结构体
+typedef struct {
+    gpio_num_t pin1;         // 电机控制引脚1
+    gpio_num_t pin2;         // 电机控制引脚2
+    ledc_channel_t channel;  // PWM通道
+} MotorConfig;
+
 /**
  * @brief 电机初始化函数
  * @details 初始化电机控制引脚和PWM输出

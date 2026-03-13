@@ -22,6 +22,12 @@ static const char *TAG = "MOTOR";
 // 电机控制引脚状态
 static bool motor_enabled = false;
 
+// 电机配置数组
+static const MotorConfig motor_configs[2] = {
+    {MOTOR_L_AIN1_PIN, MOTOR_L_AIN2_PIN, MOTOR_PWM_CHANNEL_LEFT},   // 左电机配置
+    {MOTOR_L_BIN1_PIN, MOTOR_L_BIN2_PIN, MOTOR_PWM_CHANNEL_RIGHT}   // 右电机配置
+};
+
 /**
  * @brief 将速度值(-100到100)转换为PWM占空比(0到1023)
  * @details 将速度值转换为PWM占空比
@@ -137,6 +143,37 @@ void Motor_Init(void)
 }
 
 /**
+ * @brief 统一的电机速度设置函数
+ * @details 根据电机索引设置电机的速度和方向
+ *
+ * @param motor_index 电机索引(0为左电机，1为右电机)
+ * @param speed 速度值(-100到100，负值表示后退)
+ */
+static void Motor_SetSpeedByIndex(uint8_t motor_index, int8_t speed)
+{
+    if (motor_index >= 2) {
+        ESP_LOGE(TAG, "无效的电机索引: %d", motor_index);
+        return;
+    }
+
+    if (!motor_enabled) {
+        ESP_LOGW(TAG, "电机未使能，无法设置速度");
+        return;
+    }
+
+    // 根据速度值确定电机方向
+    MotorDirection direction = (speed > 0) ? MOTOR_DIR_FORWARD : 
+                              (speed < 0) ? MOTOR_DIR_BACKWARD : MOTOR_DIR_STOP;
+
+    // 设置电机方向
+    Motor_SetDirection(motor_configs[motor_index].pin1, motor_configs[motor_index].pin2, direction);
+
+    // 设置PWM占空比
+    ledc_set_duty(MOTOR_PWM_SPEED_MODE, motor_configs[motor_index].channel, Motor_SpeedToDuty(speed));
+    ledc_update_duty(MOTOR_PWM_SPEED_MODE, motor_configs[motor_index].channel);
+}
+
+/**
  * @brief 设置左电机速度和方向
  * @details 设置左电机的速度和方向
  * 
@@ -144,23 +181,7 @@ void Motor_Init(void)
  */
 void Motor_SetLeftSpeed(int8_t speed)
 {
-    if (!motor_enabled) {
-        ESP_LOGW(TAG, "电机未使能，无法设置速度");
-        return;
-    }
-
-    // 设置电机方向
-    if (speed > 0) {
-        Motor_SetDirection(MOTOR_L_AIN1_PIN, MOTOR_L_AIN2_PIN, MOTOR_DIR_FORWARD);
-    } else if (speed < 0) {
-        Motor_SetDirection(MOTOR_L_AIN1_PIN, MOTOR_L_AIN2_PIN, MOTOR_DIR_BACKWARD);
-    } else {
-        Motor_SetDirection(MOTOR_L_AIN1_PIN, MOTOR_L_AIN2_PIN, MOTOR_DIR_STOP);
-    }
-
-    // 设置PWM占空比
-    ledc_set_duty(MOTOR_PWM_SPEED_MODE, MOTOR_PWM_CHANNEL_LEFT, Motor_SpeedToDuty(speed));
-    ledc_update_duty(MOTOR_PWM_SPEED_MODE, MOTOR_PWM_CHANNEL_LEFT);
+    Motor_SetSpeedByIndex(0, speed);
 }
 
 /**
@@ -171,23 +192,7 @@ void Motor_SetLeftSpeed(int8_t speed)
  */
 void Motor_SetRightSpeed(int8_t speed)
 {
-    if (!motor_enabled) {
-        ESP_LOGW(TAG, "电机未能，无法设置速度");
-        return;
-    }
-
-    // 设置电机方向
-    if (speed > 0) {
-        Motor_SetDirection(MOTOR_L_BIN1_PIN, MOTOR_L_BIN2_PIN, MOTOR_DIR_FORWARD);
-    } else if (speed < 0) {
-        Motor_SetDirection(MOTOR_L_BIN1_PIN, MOTOR_L_BIN2_PIN, MOTOR_DIR_BACKWARD);
-    } else {
-        Motor_SetDirection(MOTOR_L_BIN1_PIN, MOTOR_L_BIN2_PIN, MOTOR_DIR_STOP);
-    }
-
-    // 设置PWM占空比
-    ledc_set_duty(MOTOR_PWM_SPEED_MODE, MOTOR_PWM_CHANNEL_RIGHT, Motor_SpeedToDuty(speed));
-    ledc_update_duty(MOTOR_PWM_SPEED_MODE, MOTOR_PWM_CHANNEL_RIGHT);
+    Motor_SetSpeedByIndex(1, speed);
 }
 
 /**
