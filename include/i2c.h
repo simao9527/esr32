@@ -6,8 +6,8 @@
 #include <stdbool.h>
 
 // I2C引脚定义
-#define I2C_SDA_PIN 21
-#define I2C_SCL_PIN 22
+#define I2C_SDA_PIN 8
+#define I2C_SCL_PIN 9
 
 // I2C设备地址定义
 #define OLED_ADDRESS 0x3C    // OLED显示屏I2C地址

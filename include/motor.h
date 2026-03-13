@@ -16,15 +16,15 @@
 // 左电机引脚定义
 #define MOTOR_L_AIN1_PIN 4    // 左电机控制引脚1
 #define MOTOR_L_AIN2_PIN 5    // 左电机控制引脚2
-#define MOTOR_L_PWMA_PIN 6    // 左电机PWM控制引脚
+#define MOTOR_L_PWMA_PIN 1    // 左电机PWM控制引脚
 
 // 右电机引脚定义
-#define MOTOR_L_BIN1_PIN 7    // 右电机控制引脚1
-#define MOTOR_L_BIN2_PIN 8    // 右电机控制引脚2
-#define MOTOR_L_PWMB_PIN 9    // 右电机PWM控制引脚
+#define MOTOR_L_BIN1_PIN 6    // 右电机控制引脚1
+#define MOTOR_L_BIN2_PIN 7    // 右电机控制引脚2
+#define MOTOR_L_PWMB_PIN 2    // 右电机PWM控制引脚
 
 // TB6612FNG控制引脚
-#define MOTOR_STBY_PIN 10     // 待机控制引脚
+#define MOTOR_STBY_PIN 8     // 待机控制引脚
 
 // PWM频率定义
 #define MOTOR_PWM_FREQ_HZ 10000  // 电机PWM频率10kHz
