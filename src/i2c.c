@@ -28,7 +28,7 @@ void I2C_Init(void)
     };
 
     i2c_param_config(I2C_NUM_0, &conf);             // 配置I2C参数
-    i2c_driver_install(I2C_NUM_0, conf.mode, 0, 0, 0); // 安装I2C驱动
+    i2c_driver_install(I2C_NUM_0, conf.mode, 0, 0, ESP_INTR_FLAG_LEVEL1); // 安装I2C驱动
 
     ESP_LOGI(TAG, "I2C初始化完成，SCL: %d, SDA: %d, 频率: %dHz", 
              I2C_SCL_PIN, I2C_SDA_PIN, I2C_FREQ_HZ);
