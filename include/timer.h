@@ -10,6 +10,8 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include "esp_err.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
 
 // 定时器周期定义
 #define TIMER_PERIOD_SEC 1  // 定时器周期1秒
@@ -26,7 +28,7 @@ typedef void (*TimerCallback_t)(TimerEventType event);
 
 /**
  * @brief 定时器初始化函数
- * @details 初始化定时器，设置周期和回调函数
+ * @details 初始化定时器，设置周期和回调函数，创建事件处理任务
  *
  * @param callback 定时器回调函数指针
  * @return ESP_OK 成功
@@ -90,5 +92,14 @@ void Timer_SetSaveInterval(uint32_t interval);
  * @return 保存间隔（秒）
  */
 uint32_t Timer_GetSaveInterval(void);
+
+/**
+ * @brief 反初始化定时器
+ * @details 停止定时器并清理资源
+ *
+ * @return ESP_OK 成功
+ *         ESP_FAIL 失败
+ */
+esp_err_t Timer_Deinit(void);
 
 #endif // TIMER_H
