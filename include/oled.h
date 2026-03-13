@@ -76,4 +76,28 @@ void OLED_ShowChinese(uint8_t x, uint8_t y, uint8_t index);
 //   bmp - 图像数据
 void OLED_DrawBMP(uint8_t x, uint8_t y, uint8_t width, uint8_t height, const uint8_t *bmp);
 
+// OLED显示总运行时间
+// 参数:
+//   x - 起始横坐标
+//   y - 起始纵坐标
+//   total_time - 总运行时间(秒)
+//   size - 字体大小(12/16/24)
+void OLED_ShowTotalTime(uint8_t x, uint8_t y, uint32_t total_time, uint8_t size);
+
+// OLED显示速度档位
+// 参数:
+//   x - 起始横坐标
+//   y - 起始纵坐标
+//   speed_level - 速度档位(0-低, 1-中, 2-高)
+//   size - 字体大小(12/16/24)
+void OLED_ShowSpeedLevel(uint8_t x, uint8_t y, uint8_t speed_level, uint8_t size);
+
+// OLED显示避障次数
+// 参数:
+//   x - 起始横坐标
+//   y - 起始纵坐标
+//   obstacle_count - 避障次数
+//   size - 字体大小(12/16/24)
+void OLED_ShowObstacleCount(uint8_t x, uint8_t y, uint32_t obstacle_count, uint8_t size);
+
 #endif // OLED_H

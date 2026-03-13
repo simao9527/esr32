@@ -11,10 +11,8 @@
 // 小车运行数据结构
 typedef struct {
     uint32_t total_run_time;    // 总运行时间(秒)
-    uint32_t lap_count;         // 圈数
-    uint32_t obstacle_count;    // 避障次数
     uint8_t speed_level;        // 速度档位(0-低, 1-中, 2-高)
-    uint8_t reserved[3];        // 保留字节
+    uint32_t obstacle_count;    // 避障次数
 } CarData;
 
 // EEPROM初始化函数

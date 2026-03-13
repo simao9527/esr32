@@ -124,18 +124,25 @@ void OLED_Clear(void)
  * @brief OLED刷新显示
  * @details 将缓冲区内容写入OLED显示屏
  */
+/**
+ * @brief OLED显示屏刷新函数
+ * 该函数用于将OLED_Buffer中的数据刷新到OLED显示屏上
+ * 按页依次写入数据，每页包含OLED_WIDTH个像素点
+ */
 void OLED_Refresh(void)
 {
-    uint8_t i;
-    uint8_t buf[OLED_WIDTH + 1];
+    uint8_t i;          // 循环计数器，用于页地址遍历
+    uint8_t buf[OLED_WIDTH + 1];  // 数据缓冲区，用于存放待写入的数据，额外1字节用于数据标识
 
+    // 遍历所有8页（OLED通常为8页显示）
     for (i = 0; i < 8; i++) {
-        OLED_WriteCommand(0xB0 + i); // 设置页地址
-        OLED_WriteCommand(0x00);     // 设置显示位置-低列起始地址
-        OLED_WriteCommand(0x10);     // 设置显示位置-高列起始地址
+        OLED_WriteCommand(0xB0 + i); // 设置页地址，0xB0为起始页地址，i为当前页
+        OLED_WriteCommand(0x00);     // 设置显示位置-低列起始地址（列地址低4位）
+        OLED_WriteCommand(0x10);     // 设置显示位置-高列起始地址（列地址高4位）
 
         // 准备写入一页数据
-        buf[0] = OLED_DATA;
+        buf[0] = OLED_DATA;  // 缓冲区首字节为数据标识，表示接下来是显示数据
+        // 将OLED_Buffer中当前页的数据复制到缓冲区，每页宽度为OLED_WIDTH
         memcpy(&buf[1], &OLED_Buffer[i * OLED_WIDTH], OLED_WIDTH);
 
         // 写入一页数据
@@ -355,4 +362,85 @@ void OLED_DrawBMP(uint8_t x, uint8_t y, uint8_t width, uint8_t height, const uin
             }
         }
     }
+}
+
+/**
+ * @brief OLED显示总运行时间
+ * @details 显示总运行时间，格式化为时:分:秒
+ *
+ * @param x 起始横坐标
+ * @param y 起始纵坐标
+ * @param total_time 总运行时间(秒)
+ * @param size 字体大小(12/16/24)
+ */
+void OLED_ShowTotalTime(uint8_t x, uint8_t y, uint32_t total_time, uint8_t size)
+{
+    uint32_t hours = total_time / 3600;
+    uint32_t minutes = (total_time % 3600) / 60;
+    uint32_t seconds = total_time % 60;
+
+    // 显示"时间:"标签
+    OLED_ShowString(x, y, "Time:", size);
+
+    // 显示时:分:秒
+    uint8_t offset = 5 * 8; // "Time:"占用的宽度
+    if (size == 16) offset = 5 * 8;
+    else if (size == 24) offset = 5 * 12;
+
+    OLED_ShowNum(x + offset, y, hours, 2, size);
+    OLED_ShowChar(x + offset + 2 * 8, y, ':', size);
+    OLED_ShowNum(x + offset + 3 * 8, y, minutes, 2, size);
+    OLED_ShowChar(x + offset + 5 * 8, y, ':', size);
+    OLED_ShowNum(x + offset + 6 * 8, y, seconds, 2, size);
+}
+
+/**
+ * @brief OLED显示速度档位
+ * @details 显示速度档位和对应的文本描述
+ *
+ * @param x 起始横坐标
+ * @param y 起始纵坐标
+ * @param speed_level 速度档位(0-低, 1-中, 2-高)
+ * @param size 字体大小(12/16/24)
+ */
+void OLED_ShowSpeedLevel(uint8_t x, uint8_t y, uint8_t speed_level, uint8_t size)
+{
+    // 显示"速度:"标签
+    OLED_ShowString(x, y, "Speed:", size);
+
+    uint8_t offset = 6 * 8; // "Speed:"占用的宽度
+    if (size == 16) offset = 6 * 8;
+    else if (size == 24) offset = 6 * 12;
+
+    // 显示速度档位数字
+    OLED_ShowNum(x + offset, y, speed_level, 1, size);
+
+    // 显示速度档位描述
+    offset += 8;
+    const char *speed_text[] = {"Low", "Mid", "High"};
+    if (speed_level <= 2) {
+        OLED_ShowString(x + offset, y, speed_text[speed_level], size);
+    }
+}
+
+/**
+ * @brief OLED显示避障次数
+ * @details 显示避障次数
+ *
+ * @param x 起始横坐标
+ * @param y 起始纵坐标
+ * @param obstacle_count 避障次数
+ * @param size 字体大小(12/16/24)
+ */
+void OLED_ShowObstacleCount(uint8_t x, uint8_t y, uint32_t obstacle_count, uint8_t size)
+{
+    // 显示"避障:"标签
+    OLED_ShowString(x, y, "Avoid:", size);
+
+    uint8_t offset = 6 * 8; // "Avoid:"占用的宽度
+    if (size == 16) offset = 6 * 8;
+    else if (size == 24) offset = 6 * 12;
+
+    // 显示避障次数
+    OLED_ShowNum(x + offset, y, obstacle_count, 4, size);
 }
