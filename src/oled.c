@@ -365,8 +365,25 @@ void OLED_DrawBMP(uint8_t x, uint8_t y, uint8_t width, uint8_t height, const uin
 }
 
 /**
+ * @brief 获取字符串显示宽度
+ * @details 根据字体大小计算字符串显示的像素宽度
+ *
+ * @param size 字体大小(12/16/24)
+ * @return 字符宽度(像素)
+ */
+static uint8_t OLED_GetCharWidth(uint8_t size)
+{
+    switch (size) {
+        case 12: return 6;
+        case 16: return 8;
+        case 24: return 12;
+        default: return 8;
+    }
+}
+
+/**
  * @brief OLED显示总运行时间
- * @details 显示总运行时间，格式化为时:分:秒
+ * @details 显示总运行时间，只显示秒数
  *
  * @param x 起始横坐标
  * @param y 起始纵坐标
@@ -375,23 +392,16 @@ void OLED_DrawBMP(uint8_t x, uint8_t y, uint8_t width, uint8_t height, const uin
  */
 void OLED_ShowTotalTime(uint8_t x, uint8_t y, uint32_t total_time, uint8_t size)
 {
-    uint32_t hours = total_time / 3600;
-    uint32_t minutes = (total_time % 3600) / 60;
-    uint32_t seconds = total_time % 60;
-
     // 显示"时间:"标签
     OLED_ShowString(x, y, "Time:", size);
 
-    // 显示时:分:秒
-    uint8_t offset = 5 * 8; // "Time:"占用的宽度
-    if (size == 16) offset = 5 * 8;
-    else if (size == 24) offset = 5 * 12;
+    // 计算标签宽度
+    uint8_t char_width = OLED_GetCharWidth(size);
+    uint8_t offset = 5 * char_width; // "Time:"占用的宽度
 
-    OLED_ShowNum(x + offset, y, hours, 2, size);
-    OLED_ShowChar(x + offset + 2 * 8, y, ':', size);
-    OLED_ShowNum(x + offset + 3 * 8, y, minutes, 2, size);
-    OLED_ShowChar(x + offset + 5 * 8, y, ':', size);
-    OLED_ShowNum(x + offset + 6 * 8, y, seconds, 2, size);
+    // 显示秒数
+    OLED_ShowNum(x + offset, y, total_time, 5, size);
+    OLED_ShowString(x + offset + 5 * char_width, y, "s", size);
 }
 
 /**
@@ -408,15 +418,15 @@ void OLED_ShowSpeedLevel(uint8_t x, uint8_t y, uint8_t speed_level, uint8_t size
     // 显示"速度:"标签
     OLED_ShowString(x, y, "Speed:", size);
 
-    uint8_t offset = 6 * 8; // "Speed:"占用的宽度
-    if (size == 16) offset = 6 * 8;
-    else if (size == 24) offset = 6 * 12;
+    // 计算标签宽度
+    uint8_t char_width = OLED_GetCharWidth(size);
+    uint8_t offset = 6 * char_width; // "Speed:"占用的宽度
 
     // 显示速度档位数字
     OLED_ShowNum(x + offset, y, speed_level, 1, size);
 
     // 显示速度档位描述
-    offset += 8;
+    offset += char_width;
     const char *speed_text[] = {"Low", "Mid", "High"};
     if (speed_level <= 2) {
         OLED_ShowString(x + offset, y, speed_text[speed_level], size);
@@ -437,9 +447,9 @@ void OLED_ShowObstacleCount(uint8_t x, uint8_t y, uint32_t obstacle_count, uint8
     // 显示"避障:"标签
     OLED_ShowString(x, y, "Avoid:", size);
 
-    uint8_t offset = 6 * 8; // "Avoid:"占用的宽度
-    if (size == 16) offset = 6 * 8;
-    else if (size == 24) offset = 6 * 12;
+    // 计算标签宽度
+    uint8_t char_width = OLED_GetCharWidth(size);
+    uint8_t offset = 6 * char_width; // "Avoid:"占用的宽度
 
     // 显示避障次数
     OLED_ShowNum(x + offset, y, obstacle_count, 4, size);
