@@ -116,4 +116,28 @@ void Motor_Enable(void);
  */
 void Motor_Disable(void);
 
+/**
+ * @brief 获取左电机当前速度
+ * @details 获取左电机的当前速度值
+ *
+ * @return 速度值(-100到100)
+ */
+int8_t Motor_GetLeftSpeed(void);
+
+/**
+ * @brief 获取右电机当前速度
+ * @details 获取右电机的当前速度值
+ *
+ * @return 速度值(-100到100)
+ */
+int8_t Motor_GetRightSpeed(void);
+
+/**
+ * @brief 获取电机使能状态
+ * @details 获取电机驱动芯片的使能状态
+ *
+ * @return true表示已使能，false表示已禁用
+ */
+bool Motor_IsEnabled(void);
+
 #endif // MOTOR_H

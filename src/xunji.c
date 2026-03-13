@@ -131,25 +131,48 @@ bool Xunji_IsLineLost(void)
 /**
  * @brief 获取轨迹偏移量
  * @details 计算轨迹相对于中心的偏移量，用于PID控制
+ *         使用加权平均算法计算更精确的偏移量
  *
  * @return 偏移量，负值表示偏左，正值表示偏右，0表示居中
+ *         范围：-100到100
  */
 int8_t Xunji_GetOffset(void)
 {
     XunjiSensorState state = Xunji_ReadSensors();
 
-    // 计算加权偏移量
-    int8_t offset = 0;
+    // 计算加权偏移量，使用更精细的权重
+    // 权重：sensor1=-50, sensor2=-25, sensor3=0, sensor4=25, sensor5=50
+    int16_t weighted_sum = 0;
+    int16_t total_weight = 0;
 
-    if (state.sensor1) offset -= 2;  // 最左侧，大幅偏左
-    if (state.sensor2) offset -= 1;  // 左侧，小幅偏左
-    if (state.sensor4) offset += 1;  // 右侧，小幅偏右
-    if (state.sensor5) offset += 2;  // 最右侧，大幅偏右
-
-    // 中间传感器检测到线时，偏移量归零
-    if (state.sensor3) {
-        offset = 0;
+    if (state.sensor1) {
+        weighted_sum -= 50;
+        total_weight += 1;
     }
+    if (state.sensor2) {
+        weighted_sum -= 25;
+        total_weight += 1;
+    }
+    if (state.sensor3) {
+        weighted_sum += 0;
+        total_weight += 1;
+    }
+    if (state.sensor4) {
+        weighted_sum += 25;
+        total_weight += 1;
+    }
+    if (state.sensor5) {
+        weighted_sum += 50;
+        total_weight += 1;
+    }
+
+    // 如果没有检测到线，返回0（保持上次状态或停止）
+    if (total_weight == 0) {
+        return 0;
+    }
+
+    // 计算平均偏移量
+    int8_t offset = (int8_t)(weighted_sum / total_weight);
 
     return offset;
 }

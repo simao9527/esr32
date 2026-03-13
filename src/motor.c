@@ -22,6 +22,10 @@ static const char *TAG = "MOTOR";
 // 电机控制引脚状态
 static bool motor_enabled = false;
 
+// 保存当前电机速度
+static int8_t left_motor_speed = 0;
+static int8_t right_motor_speed = 0;
+
 // 电机配置数组
 static const MotorConfig motor_configs[2] = {
     {MOTOR_L_AIN1_PIN, MOTOR_L_AIN2_PIN, MOTOR_PWM_CHANNEL_LEFT},   // 左电机配置
@@ -171,6 +175,13 @@ static void Motor_SetSpeedByIndex(uint8_t motor_index, int8_t speed)
     // 设置PWM占空比
     ledc_set_duty(MOTOR_PWM_SPEED_MODE, motor_configs[motor_index].channel, Motor_SpeedToDuty(speed));
     ledc_update_duty(MOTOR_PWM_SPEED_MODE, motor_configs[motor_index].channel);
+
+    // 保存当前速度值
+    if (motor_index == 0) {
+        left_motor_speed = speed;
+    } else {
+        right_motor_speed = speed;
+    }
 }
 
 /**
@@ -273,6 +284,10 @@ void Motor_Stop(void)
     ledc_update_duty(MOTOR_PWM_SPEED_MODE, MOTOR_PWM_CHANNEL_LEFT);
     ledc_set_duty(MOTOR_PWM_SPEED_MODE, MOTOR_PWM_CHANNEL_RIGHT, 0);
     ledc_update_duty(MOTOR_PWM_SPEED_MODE, MOTOR_PWM_CHANNEL_RIGHT);
+
+    // 重置速度值
+    left_motor_speed = 0;
+    right_motor_speed = 0;
 }
 
 /**
@@ -296,4 +311,37 @@ void Motor_Disable(void)
     gpio_set_level(MOTOR_STBY_PIN, 0);
     motor_enabled = false;
     ESP_LOGI(TAG, "电机驱动已禁用");
+}
+
+/**
+ * @brief 获取左电机当前速度
+ * @details 获取左电机的当前速度值
+ *
+ * @return 速度值(-100到100)
+ */
+int8_t Motor_GetLeftSpeed(void)
+{
+    return left_motor_speed;
+}
+
+/**
+ * @brief 获取右电机当前速度
+ * @details 获取右电机的当前速度值
+ *
+ * @return 速度值(-100到100)
+ */
+int8_t Motor_GetRightSpeed(void)
+{
+    return right_motor_speed;
+}
+
+/**
+ * @brief 获取电机使能状态
+ * @details 获取电机驱动芯片的使能状态
+ *
+ * @return true表示已使能，false表示已禁用
+ */
+bool Motor_IsEnabled(void)
+{
+    return motor_enabled;
 }
