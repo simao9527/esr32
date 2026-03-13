@@ -9,6 +9,8 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include "driver/gpio.h"
+#include "driver/ledc.h"
 
 // TB6612FNG电机驱动引脚定义
 // 左电机引脚定义
