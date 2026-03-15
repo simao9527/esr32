@@ -55,6 +55,14 @@ TaskHandle_t car_track_start(const car_track_config_t *config);
 void car_track_stop(TaskHandle_t task_handle);
 
 
+/* 获取当前电机PWM值
+   参数：
+     left_speed - 左电机PWM值
+     right_speed - 右电机PWM值
+*/
+void car_track_get_motor_pwm(int16_t *left_speed, int16_t *right_speed);
+
+
 #ifdef __cplusplus
 }
 #endif

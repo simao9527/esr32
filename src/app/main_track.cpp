@@ -19,7 +19,7 @@ void setup() {
     // 初始化串口
     Serial.begin(115200);
     delay(1000);
-
+    Serial.println("=== SETUP START ===");   // 新增
     Serial.println("====================================");
     Serial.println("Line Tracking Program");
     Serial.println("====================================");
@@ -56,7 +56,7 @@ void setup() {
         .track_speed = 120,        // 基础速度
         .track_max_speed = 170,    // 最大速度
         .track_min_speed = 60,     // 最小速度
-        .max_lost_count = 1500,      // 最大丢线次数
+        .max_lost_count = 15,      // 最大丢线次数
         .check_interval_ms = 20,   // 检测周期
         .kp = 22.0f,               // PID参数
         .ki = 0.0f,
@@ -94,6 +94,10 @@ void loop() {
         // 读取传感器状态
         line_tracker_state_t tracker_state;
         if (line_tracker_read_all(&tracker_state)) {
+            // 获取当前电机PWM值
+            int16_t left_pwm, right_pwm;
+            car_track_get_motor_pwm(&left_pwm, &right_pwm);
+
             display.clear();
             display.setFont(ArialMT_Plain_10);
 
@@ -104,8 +108,8 @@ void loop() {
             display.drawString(0, 16, "S1:" + String(tracker_state.sensor1) + " S2:" + String(tracker_state.sensor2) + " S3:" + String(tracker_state.sensor3));
             display.drawString(0, 32, "S4:" + String(tracker_state.sensor4) + " S5:" + String(tracker_state.sensor5));
 
-            // 显示运行时间
-            display.drawString(0, 48, "Time: " + String(current_time / 1000) + "s");
+            // 显示电机PWM值
+            display.drawString(0, 48, "L:" + String(left_pwm) + " R:" + String(right_pwm));
 
             display.display();
         }

@@ -48,6 +48,10 @@ static uint8_t g_track_speed = MID_SPEED_BASE;
 static uint8_t g_track_max_speed = MID_SPEED_MAX;
 static uint8_t g_track_min_speed = MID_SPEED_MIN;
 
+/* 全局变量：保存当前电机速度，用于获取电机状态 */
+int16_t g_last_left_speed = 0;
+int16_t g_last_right_speed = 0;
+
 
 /* =============================
    速度档位函数
@@ -96,6 +100,7 @@ uint8_t car_track_set_speed_level(uint8_t level)
 
 static void car_track_task(void *pvParameters)
 {
+    Serial.println(">>> car_track_task started <<<");   // 新增
 
     car_track_config_t *config = (car_track_config_t *)pvParameters;
 
@@ -130,8 +135,8 @@ static void car_track_task(void *pvParameters)
 
     uint32_t lost_line_count = 0;
 
-    int16_t last_left_speed = track_speed;
-    int16_t last_right_speed = track_speed;
+    g_last_left_speed = track_speed;
+    g_last_right_speed = track_speed;
 
     ESP_LOGI(TAG, "Track mode task started");
 
@@ -140,8 +145,11 @@ static void car_track_task(void *pvParameters)
 
         line_tracker_state_t tracker_state;
 
-        if (line_tracker_read_all(&tracker_state) == ESP_OK)
-        {
+bool success = line_tracker_read_all(&tracker_state);   // 改为 bool 类型
+Serial.printf("line_tracker_read_all returned: %d\n", success);
+if (success)   // 直接用 success 判断
+{
+    Serial.println("Task loop running");
 
             bool s1 = tracker_state.sensor1;
             bool s2 = tracker_state.sensor2;
@@ -155,7 +163,7 @@ static void car_track_task(void *pvParameters)
 
             int8_t deviation = 0;
             bool line_detected = false;
-
+            
             int sensor_count =
                 (s1 ? 1 : 0) +
                 (s2 ? 1 : 0) +
@@ -247,9 +255,13 @@ static void car_track_task(void *pvParameters)
 
                 if (right_speed < track_min_speed)
                     right_speed = track_min_speed;
+                        // ========== 新增调试打印 ==========
+    Serial.printf("kp=%.2f error=%.2f integral=%.2f derivative=%.2f output=%.2f\n", kp, error, integral, derivative, output);
+    Serial.printf("left_speed=%d right_speed=%d\n", left_speed, right_speed);
+    // =================================
 
-                last_left_speed = left_speed;
-                last_right_speed = right_speed;
+                g_last_left_speed = left_speed;
+                g_last_right_speed = right_speed;
 
                 last_deviation = deviation;
 
@@ -275,8 +287,8 @@ static void car_track_task(void *pvParameters)
                 if (lost_line_count < max_lost_count)
                 {
                     tb6612_set_motor(
-                        last_left_speed,
-                        last_right_speed);
+                        g_last_left_speed,
+                        g_last_right_speed);
                 }
                 else
                 {
@@ -286,12 +298,11 @@ static void car_track_task(void *pvParameters)
                 }
             }
         }
-        else
-        {
-            tb6612_car_stop();
-            ESP_LOGW(TAG,
-                     "Sensor read failed");
-        }
+       else
+{
+    tb6612_car_stop();
+    ESP_LOGW(TAG, "Sensor read failed");
+}
 
         vTaskDelay(check_interval / portTICK_PERIOD_MS);
     }
@@ -335,7 +346,7 @@ TaskHandle_t car_track_start(const car_track_config_t *config)
     xTaskCreate(
         car_track_task,
         "car_track",
-        4096,
+        8192,
         config_copy,
         5,
         &task_handle);
@@ -353,4 +364,16 @@ void car_track_stop(TaskHandle_t task_handle)
     {
         /* 模式切换后任务会自动退出 */
     }
+}
+
+
+/* 获取当前电机PWM值
+   参数：
+     left_speed - 左电机PWM值
+     right_speed - 右电机PWM值
+*/
+void car_track_get_motor_pwm(int16_t *left_speed, int16_t *right_speed)
+{
+    if (left_speed) *left_speed = g_last_left_speed;
+    if (right_speed) *right_speed = g_last_right_speed;
 }
